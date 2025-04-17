@@ -1,3 +1,5 @@
+from ftplib import error_temp
+
 from django.contrib.auth.hashers import make_password
 from rest_framework import viewsets
 from rest_framework.views import APIView
@@ -5,26 +7,16 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-
 from configapp.models import Teacher
 from configapp.serializers import TeacherSerializer
-
-
+from ..add_pagination import CustomPaginator
 from ..serializers.teacher_serializer import TeacherSerializer, TeacherPostSerializer, TeacherUserSerializer
 from ..models import User
-
-
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
-
-    def get_serializer_class(self):
-        data={'success':True}
-        if self.action == 'create':
-            return TeacherPostSerializer
-        return TeacherSerializer
 
     @swagger_auto_schema(request_body=TeacherPostSerializer)
     def create(self, request, *args, **kwargs):
@@ -58,34 +50,13 @@ class TeacherViewSet(viewsets.ModelViewSet):
         }
         return Response(response_data, status=status.HTTP_201_CREATED)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def get(self, request):
+        teachers = Teacher.objects.all().order_by('-id')
+        paginator = CustomPaginator()
+        paginator.page_size = 2
+        result_page = paginator.paginate_queryset(teachers, request)
+        serializer = TeacherSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 #
 #

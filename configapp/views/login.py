@@ -6,9 +6,12 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from ..add_pagination import CustomPaginator
 from ..make_token import *
 from ..serializers import *
 import random
+
 
 class LoginApi(APIView):
     permission_classes = [AllowAny, ]
@@ -23,6 +26,7 @@ class LoginApi(APIView):
         token['is_admin'] = user.is_admin
         return Response(data=token, status=status.HTTP_200_OK)
 
+
 class TeacherCreateApi(APIView):
     @swagger_auto_schema(request_body=TeacherSerializer)
     def post(self, request):
@@ -31,6 +35,7 @@ class TeacherCreateApi(APIView):
             serializer.save()
             return Response({"status": True, "detail": "Teacher created"})
         return Response({"status": False, "errors": serializer.errors}, status=400)
+
 
 class PhoneSendOTP(APIView):
     @swagger_auto_schema(request_body=SMSSerializer)
@@ -69,7 +74,7 @@ class VerifySMS(APIView):
             cached_code = str(cache.get(phone_number))
             if verification_code == str(cached_code):
                 return Response({
-                    'status':True,
+                    'status': True,
                     'detail': 'Otp matched. proceed for registration'
                 })
             else:
@@ -80,6 +85,7 @@ class VerifySMS(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class RegisterUserApi(APIView):
     @swagger_auto_schema(request_body=UserSerializer)
     def post(self, request):
@@ -89,11 +95,14 @@ class RegisterUserApi(APIView):
             serializer.validated_data['password'] = make_password(password)
             serializer.save()
             return Response({
-                    'status': True,
-                    'detail': 'CREATE Account'
+                'status': True,
+                'detail': 'CREATE Account'
             })
 
     def get(self, request):
         users = User.objects.all().order_by('-id')
-        serializer = UserSerializer(users, many=True)
-        return Response(data=serializer.data)
+        paginator = CustomPaginator()
+        paginator.page_size = 2
+        result_page = paginator.paginate_queryset(users, request)
+        serializer = UserSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
