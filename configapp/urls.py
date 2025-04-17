@@ -23,6 +23,7 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from .views import *
+from .views.group_view import GroupStudentDetailUpdateAPIView, GroupApi
 
 router = DefaultRouter()
 router.register(r'teacher', TeacherViewSet, basename='teacher')
@@ -36,5 +37,7 @@ urlpatterns = [
     path('token/', LoginApi.as_view(), name='token_obtain_pair'),
     path('teacher/create/', TeacherCreateApi.as_view(), name='teacher'),
     path('', include(router.urls)),  # ✅ teacher/ CRUD endpointlar shu yerda
+    path('group-title-patch/<int:pk>/', GroupStudentDetailUpdateAPIView.as_view(), name='group-update'),
+    path('group/', GroupApi.as_view(), name='group-list-create'),
 ]
 
