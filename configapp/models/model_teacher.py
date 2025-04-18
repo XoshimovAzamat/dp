@@ -27,7 +27,7 @@ class Departments(BaseModel):
 class Teacher(BaseModel):
     user = models.OneToOneField(User, on_delete=models.RESTRICT, related_name="user")
     departments = models.ManyToManyField(Departments, related_name='get_department')
-    course = models.ManyToManyField(Course, related_name='get_course')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='teacher_courses')
     descriptions = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
